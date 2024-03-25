@@ -13,7 +13,6 @@ dotenv.config();
 
 //create express app
 const app = express();
-const port = process.env.port || 9000;
 
 // verify that we are in development mode
 // console.log(process.env.NODE_ENV);
@@ -51,10 +50,11 @@ app.use(fileUpload({
 //cors
 app.use(cors());
 
+//// *** END OF ADDING MIDDLEWARES *** ////
+
 
 app.get("/test", (req, res) => {
     res.send("Hello from our backend server!");
 });
 
-app.listen(port, () => console.log(`Server is listening on port ${port}!!!`));
-
+export default app;
