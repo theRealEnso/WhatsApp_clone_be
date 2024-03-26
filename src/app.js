@@ -7,6 +7,9 @@ import cookieParser from "cookie-parser"; // parse cookie headers and populate r
 import compression from "compression"; // compresses response bodies for all incoming requests to reduce data size, allowing for faster processing and response times
 import fileUpload from "express-fileupload"; // this makes uploaded files accessible from req.files
 import cors from "cors"; // this restricts who can access the server
+import createHttpError from "http-errors";
+
+import routes from "./routes/index-routes.js";
  
 //dotenv config
 dotenv.config();
@@ -49,6 +52,28 @@ app.use(fileUpload({
 
 //cors
 app.use(cors());
+
+app.use(async (req, res, next) => {
+    next(createHttpError.NotFound("This route does not exist!"));
+});
+
+//error handling middleware
+app.use(async (error, req, res, next) => {
+    res.status(error.status || 500);
+    res.send({
+        error: {
+            status: error.status || 500,
+            message: error.message,
+        }
+    })
+});
+
+app.use("/api/v1", routes);
+//final result(s)
+//http:localhost:9000/api/v1/auth/register
+//http:localhost:9000/api/v1/auth/login
+//http:localhost:9000/api/v1/auth/logout
+//http:localhost:9000/api/v1/auth/refreshToken
 
 //// *** END OF ADDING MIDDLEWARES *** ////
 
