@@ -23,7 +23,7 @@ const app = express();
 //// *** ADDING MIDDLEWARES *** ////
 
 //Morgan
-if(process.env.NODE_ENv !== "production"){
+if(process.env.NODE_ENV !== "production"){
     app.use(morgan("dev"));
 };
 
@@ -53,6 +53,19 @@ app.use(fileUpload({
 //cors
 app.use(cors());
 
+app.use("/api/v1", routes);
+//final result(s)
+//http:localhost:9000/api/v1/auth/register
+//http:localhost:9000/api/v1/auth/login
+//http:localhost:9000/api/v1/auth/logout
+//http:localhost:9000/api/v1/auth/refreshToken
+
+
+app.get("/test", (req, res) => {
+    res.send("Hello from our backend server!");
+});
+
+//error handling middleware
 app.use(async (req, res, next) => {
     next(createHttpError.NotFound("This route does not exist!"));
 });
@@ -68,18 +81,6 @@ app.use(async (error, req, res, next) => {
     })
 });
 
-app.use("/api/v1", routes);
-//final result(s)
-//http:localhost:9000/api/v1/auth/register
-//http:localhost:9000/api/v1/auth/login
-//http:localhost:9000/api/v1/auth/logout
-//http:localhost:9000/api/v1/auth/refreshToken
-
 //// *** END OF ADDING MIDDLEWARES *** ////
-
-
-app.get("/test", (req, res) => {
-    res.send("Hello from our backend server!");
-});
 
 export default app;

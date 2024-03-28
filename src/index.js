@@ -8,7 +8,7 @@ const port = process.env.port || 9000;
 
 //mongoDB debug mode
 if(process.env.NODE_ENV !== 'production'){
-    mongoose.set('debug', true);
+    mongoose.set("debug", true);
 };
 
 //mongoDB connection
