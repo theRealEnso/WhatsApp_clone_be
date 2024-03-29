@@ -3,13 +3,12 @@ import { UserModel } from "../models/userModel.js";
 import createHttpError from "http-errors";
 import validator from "validator";
 import bcrypt from "bcrypt"
-// import logger from "../configs/winston-logger.js";
 
 //function to create a user and add to db
 // argument userData passed into createUser is expected to be an object with properties firstName / lastName  / email / picture / status / password / confirmPassword
 // cannot do {userData} with curly brackets because this says we are expecting an object that has a property called `userData`, and inside that userData itself contains properties name/email/picture/status
 
-//no need to put code in a try/catch block because, we have our error handling middleware in the app.js file to handle errors. If we put a try/catch block then the try/catch will still handle the error, but the error handling middleware won't run because the try/catch handles it. Don't want this bc we want the server to send back the error message in a certain format
+//no need to put code in a try/catch block because, the register function is already in a try/catch, and we have our error handling middleware in the app.js file to handle any errors. If we put a try/catch block then the try/catch will still handle the error, but the error handling middleware won't run because the the try/catch defined here handles it. Don't want this bc we want the server to send back the error message in a certain format
 export const createAndAddUserToDB = async (userData) => {
     const {firstName, lastName, email, password, confirmPassword, picture, status} = userData;
 
@@ -74,11 +73,25 @@ export const createAndAddUserToDB = async (userData) => {
 
 // function to find user in the database
 
-export const findUser = async (email) => {
+export const signInUser = async (email, password) => {
+    //find user in db using the email
     const existingUser = await UserModel.findOne({email: email});
     if(!existingUser) {
         throw createHttpError.BadRequest("User not found!");
     };
 
-    return existingUser;
+    // use bcrypt to compare the hashed password stored in db versus the password user inputted
+    const hashedPassword = existingUser.password;
+    const checkedPassword = await bcrypt.compare(password, hashedPassword);
+    if(checkedPassword){
+        return existingUser;
+    }
 };
+
+export const findUser = async (id) => {
+    const foundUser = await UserModel.findOne({_id: id});
+
+    if(!foundUser) throw createHttpError.BadRequest("User not found!");
+
+    return foundUser;
+}

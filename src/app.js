@@ -66,11 +66,6 @@ app.get("/test", (req, res) => {
 });
 
 //error handling middleware
-app.use(async (req, res, next) => {
-    next(createHttpError.NotFound("This route does not exist!"));
-});
-
-//error handling middleware
 app.use(async (error, req, res, next) => {
     res.status(error.status || 500);
     res.send({
@@ -81,6 +76,10 @@ app.use(async (error, req, res, next) => {
     })
 });
 
+//error handling middleware
+app.use(async (req, res, next) => {
+    next(createHttpError.NotFound("This route does not exist!"));
+});
 //// *** END OF ADDING MIDDLEWARES *** ////
 
 export default app;

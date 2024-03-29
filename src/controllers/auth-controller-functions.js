@@ -1,20 +1,17 @@
 import createHttpError from "http-errors";
 
-import { createAndAddUserToDB, findUser } from "../services/user-services-functions.js";
+import { createAndAddUserToDB, signInUser, findUser } from "../services/user-services-functions.js";
+import { generateToken, verifyToken } from "../utils/generateTokens.js";
+
+// const secret_access_token = process.env.SECRET_ACCESS_TOKEN; // DOES NOT WORK FOR SOME REASON
+// const secret_refresh_token = process.env.SECRET_REFRESH_TOKEN; // DOES NOT WORK FOR SOME REASON
 
 export const register = async (req, res, next) => {
     try {
         //extract pieces of form data from the incoming request from the front end
         const {firstName, lastName, email, password, confirmPassword, picture, status} = req.body;
 
-        //additional check to see if the email is already registered to a user in the database
-
-        // const existingUser = await findUser(email);
-        // if(existingUser){
-        //     throw createHttpError.BadRequest("The provided email address is already registered to an existing user. Please use a different email address");
-        // };
-
-        //create a new user and add to DB using the data from the front end
+        //create a new user and add to DB using the data from the front end. No need to perform additional check to see if user already exists in DB, is already handled by validation
         const newUser = await createAndAddUserToDB({
             firstName,
             lastName,
@@ -24,37 +21,132 @@ export const register = async (req, res, next) => {
             picture,
             status
         });
+        
+        const userId = newUser._id;
 
-        res.status(200).json(newUser);
+        // generate access token using our secret access token to attach to the user (using their ID). Should be valid for 24 hrs
+        const userAccessToken = await generateToken({id: userId}, secret_access_token, "1d");
 
-        // generate access token using our secret access token. Should be valid for 24 hrs
+        //generate refresh token using our secret refresh token to attach to the user (using their ID). Should be valid for 30 days
+        const userRefreshToken = await generateToken({id: userId}, secret_refresh_token, "30d");
 
-        //generate refresh token using our secret refresh token. Should be valid for 30 days
+        //store refresh token on on the server. This is used to generate a new access token for the user. Should be valid for 30 days
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + 30);
+        res.cookie("refreshToken", userRefreshToken, { //res.cookie takes 3 params: 1.) name of the cookie 2.) data to store in cookie, 3.) options object
+            path: "/api/v1/auth/refreshToken",
+            expires: expirationDate,
+        });
 
-        //store refresh token on on the server. This is used to generate a new access token for the user
-        // res.status.(500).json({message: error.message})
+        res.json({
+            message: "User successfully registered!",
+            user: {
+                // ...newUser,
+                _id: newUser._id,
+                firstName: newUser.firstName,
+                lastName: newUser.lastName,
+                email: newUser.email,
+                picture: newUser.picture,
+                status: newUser.status,
+                access_token: userAccessToken,
+            }
+        });
+
     } catch(error) {
         next(error); // using this instead => next will pass this error to the next middleware for error handling, which is the error handling middleware we defined in app.js
-    }
-}
+    };
+};
+
 export const login = async (req, res, next) => {
     try {
-        // res.status.(500).json({message: error.message})
+        //pull email and password from the front end
+        const {email, password} = req.body;
+
+        //find user in the database using email and verify the password
+        const user = await signInUser(email, password);
+
+        //generate new access token for the user
+        const signedInUserId = user._id;
+        const userAccessToken = await generateToken({id: signedInUserId}, process.env.SECRET_ACCESS_TOKEN, "1d");
+        
+        //generate refresh token for the user
+        const userRefreshToken = await generateToken({id: signedInUserId}, process.env.SECRET_REFRESH_TOKEN, "30d");
+
+        //store refresh token in cookie on the server
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + 30);
+        res.cookie("refreshToken", userRefreshToken, {
+            path: "api/v1/auth/refreshToken",
+            expires: expirationDate,
+        });
+
+        res.json({
+            message: "User successfully signed in!",
+            user: {
+                _id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                picture: user.picture,
+                status: user.status,
+                access_token: userAccessToken,
+            }
+        })
+
     } catch(error) {
         next(error); // using this instead => next will pass this error to the next middleware for error handling, which is the error handling middleware we defined in app.js
-    }
-}
+    };
+};
+
 export const logout = async (req, res, next) => {
     try {
+        res.clearCookie("refreshToken", {path: "/api/v1/auth/refreshToken"});
+        res.json({
+            message: "Successfully logged the user out!",
+        })
         // res.status.(500).json({message: error.message})
     } catch(error) {
         next(error); // using this instead => next will pass this error to the next middleware for error handling, which is the error handling middleware we defined in app.js
     }
 }
+// use stored refresh token on the server to generate a new access token for the user
 export const refreshToken = async (req, res, next) => {
     try {
+        //retrieve refresh token from stored cookie on the server
+        const storedRefreshToken = req.cookies.refreshToken;
+        if(!storedRefreshToken) throw createHttpError.Unauthorized("Please log back into your account");
+
+        //verify the user and their ID using the stored refresh token, checking it against our secret refresh token
+        const verifiedUser = await verifyToken(storedRefreshToken, process.env.SECRET_REFRESH_TOKEN); // jwt function returns a user object containing the user id:
+        // ex: { 
+        //     id: '6605fc4592477b6c97075693', 
+        //     iat: 1711668294, 
+        //     exp: 1714260294 
+        // }
+        console.log(verifiedUser);
+        // res.send(verifiedUser);
+
+        //once user ID is verified, then use the same ID to generate a new access token
+        if(verifiedUser){
+            const verifiedUserId = verifiedUser.id;
+            const user = await findUser(verifiedUserId);
+            const newAccessToken = await generateToken({id: user._id}, process.env.SECRET_ACCESS_TOKEN, "1d");
+
+            res.json({
+                message: "successfully generated a new access token for the user!",
+                user: {
+                    _id: user._id,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    picture: user.picture,
+                    status: user.status,
+                    new_access_token: newAccessToken,
+                }
+            });
+        };
         // res.status.(500).json({message: error.message})
     } catch(error) {
         next(error); // using this instead => next will pass this error to the next middleware for error handling, which is the error handling middleware we defined in app.js
-    }
-}
+    };
+};
