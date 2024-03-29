@@ -89,9 +89,9 @@ export const signInUser = async (email, password) => {
 };
 
 export const findUser = async (id) => {
-    const foundUser = await UserModel.findOne({_id: id});
+    const foundUser = await UserModel.findById(id);
 
     if(!foundUser) throw createHttpError.BadRequest("User not found!");
 
     return foundUser;
-}
+};
