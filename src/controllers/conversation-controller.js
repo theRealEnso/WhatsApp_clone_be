@@ -2,7 +2,7 @@ import logger from "../configs/winston-logger.js";
 import createHttpError from "http-errors";
 
 import { findUser } from "../services/user-services-functions.js";
-import { findConversationBetweenTwoUsers, createNewConversation, populateConversation } from "../services/conversation-services-functions.js";
+import { findConversationBetweenTwoUsers, createNewConversation, populateConversation, getAllUserConversations } from "../services/conversation-services-functions.js";
 
 export const createNewOrOpenExistingConversation = async (req, res, next) => {
     try {
@@ -37,3 +37,17 @@ export const createNewOrOpenExistingConversation = async (req, res, next) => {
         next(error);
     }
 }
+
+export const getAllConversations = async (req, res, next) => {
+    try {
+        const user_id = req.user.id;
+        const foundConversations = await getAllUserConversations(user_id);
+
+        if(foundConversations){
+            res.status(200).json(foundConversations);
+        };
+
+    } catch(error) {
+        next(error)
+    };
+};

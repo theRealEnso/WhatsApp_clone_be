@@ -15,7 +15,8 @@ export const findConversationBetweenTwoUsers = async (senderId, receiverId) => {
     .populate({
         path: "users",
         select: "firstName lastName email picture status",
-    });
+    })
+    .populate("latestMessage");
 
     if(!foundConversation) throw createHttpError.BadRequest("Whoops! Looks like something went wrong...");
 
@@ -52,6 +53,33 @@ export const populateConversation = async (conversationId, fieldsToPopulate, dat
 
         return populatedConversation;
     };
+};
+
+export const getAllUserConversations = async (userId) => {
+    const foundConversations = await ConversationModel.find({
+        users: {$elemMatch: {$eq: userId}}
+    })
+    .populate({
+        path: "users",
+        select: "firstName lastName email picture status"
+    })
+    .populate({
+        path: "isAdmin",
+        select: "firstName lastName email picture status"
+    })
+    .populate({
+        path: "latestMessage",
+    })
+    .sort({updatedAt: -1}) // list the newest conversation first
+
+    if(!foundConversations) throw createHttpError.BadRequest("Whoops! Looks like something went wrong...");
+
+    const populatedConversations = UserModel.populate(foundConversations, {
+        path: "latestMessage.sender",
+        select: "firstName lastName email picture status",
+    })
+
+    return populatedConversations;
 };
 
 
