@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 
 import { createAndAddUserToDB, signInUser, findUser } from "../services/user-services-functions.js";
-import { generateToken, verifyToken } from "../utils/generateTokens.js";
+import { generateToken, verifyToken } from "../utils/token-functions.js";
 
 // const secret_access_token = process.env.SECRET_ACCESS_TOKEN; // DOES NOT WORK FOR SOME REASON
 // const secret_refresh_token = process.env.SECRET_REFRESH_TOKEN; // DOES NOT WORK FOR SOME REASON
@@ -25,10 +25,10 @@ export const register = async (req, res, next) => {
         const userId = newUser._id;
 
         // generate access token using our secret access token to attach to the user (using their ID). Should be valid for 24 hrs
-        const userAccessToken = await generateToken({id: userId}, secret_access_token, "1d");
+        const userAccessToken = await generateToken({id: userId}, process.env.SECRET_ACCESS_TOKEN, "1d");
 
         //generate refresh token using our secret refresh token to attach to the user (using their ID). Should be valid for 30 days
-        const userRefreshToken = await generateToken({id: userId}, secret_refresh_token, "30d");
+        const userRefreshToken = await generateToken({id: userId}, process.env.SECRET_REFRESH_TOKEN, "30d");
 
         //store refresh token on on the server. This is used to generate a new access token for the user. Should be valid for 30 days
         const expirationDate = new Date();

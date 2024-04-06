@@ -12,6 +12,12 @@ import bcrypt from "bcrypt"
 export const createAndAddUserToDB = async (userData) => {
     const {firstName, lastName, email, password, confirmPassword, picture, status} = userData;
 
+    //check if a registered email already exists
+    const findUserInDB = await UserModel.findOne({email});
+    if(findUserInDB){
+        throw createHttpError.Conflict("The email provided is already in use. Please try again with a different email address");
+    }
+
     //check if required fields exist
     if(!firstName || !lastName || !email || !password || !confirmPassword){
         throw createHttpError.BadRequest("Please fill out all of the required fields!");
@@ -53,11 +59,10 @@ export const createAndAddUserToDB = async (userData) => {
         throw createHttpError.BadRequest("Please make sure your status is between 2 and 64 characters long");
     };
 
-    // create new instance of `UserModel` schema (represents a document in MongoDB terms)
+    // create new user document to add to db
+    //create new instance of `UserModel` schema (represents a document in MongoDB terms)
     //also performs validation based on the schema that was defined
     //can also do UserModel.create({}). Each has diff levels of control
-
-    
     const user = await new UserModel({
         firstName,
         lastName,

@@ -3,6 +3,7 @@
 import express from "express";
 
 import authRoutes from './authentication-route.js';
+import conversationRoutes from './conversation-routes.js';
 
 const router = express.Router();
 
@@ -13,5 +14,7 @@ router.use("/auth", authRoutes);
 // http://localhost:9000/auth/logout
 // http://localhost:9000/auth/refreshToken
 //BUT, this needs to be appended further to the actual application in app.js
+
+router.use("/conversations", conversationRoutes);
 
 export default router;

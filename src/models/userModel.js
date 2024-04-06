@@ -10,13 +10,13 @@ const userSchema = mongoose.Schema(
             type: String,
             required: [true, "First name is required"],
             minLength: [2, "Please make sure your first name is greater than 2 characters"],
-            maxLength: [24, "Please make sure your first name does not exceed 16 characters "]
+            maxLength: [24, "Please make sure your first name does not exceed 24 characters "]
         },
         lastName: {
             type: String,
             required: [true, "Last name is required"],
             minLength: [2, "Please make sure your last name is greater than 2 characters"],
-            maxLength: [24, "Please make sure your last name does not exceed 16 characters "]
+            maxLength: [24, "Please make sure your last name does not exceed 24 characters "]
         },
         email: {
             type: String,
@@ -29,13 +29,13 @@ const userSchema = mongoose.Schema(
             type: String,
             required: [true, "Password name is required"],
             minLength: [6, "Please make sure your password is at least 6 characters long"],
-            maxLength: [64, "Please make sure your password does not exceed 64 characters"]
+            maxLength: [128, "Please make sure your password does not exceed 64 characters"]
         },
         confirmPassword: {
             type: String,
             required: [true, "Please confirm your password"],
             minLength: [6, "Please make sure your password is at least 6 characters long"],
-            maxLength: [64, "Please make sure your password does not exceed 64 characters"]
+            maxLength: [128, "Please make sure your password does not exceed 64 characters"]
         },
         picture: {
             type: String,
