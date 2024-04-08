@@ -10,13 +10,16 @@ export const findConversationBetweenTwoUsers = async (senderId, receiverId) => {
             {users: {$elemMatch: {$eq: senderId}}},
             {users: {$elemMatch: {$eq: receiverId}}},
         ]
+    }).populate({
+        path: "users",
+        select: "firstName lastName email picture status"
+    }).populate({
+        path: "latestMessage"
     })
     //find method only returns documents without any populated data besides the user ID's. We want the document to have additional information about the user(s) as defined in our userSchema/model as well, hence why we use the populate method => accepts an object with a `path` key that specifies what field in the conversationSchema we want to populate (in this case, the `users` field/key in the conversationSchema, which specifically references documents in the userSchema/Model), second is the `select` key, which specifies what pieces of data we want to include (cannot also exclude at the same time i.e "firstName lastName email picture status -password -confirmPassword")
-    .populate({
-        path: "users",
-        select: "firstName lastName email picture status",
-    })
-    .populate("latestMessage");
+
+    console.log(foundConversation);
+    // console.log(foundConversation[0]);
 
     if(!foundConversation) throw createHttpError.BadRequest("Whoops! Looks like something went wrong...");
 
@@ -28,8 +31,8 @@ export const findConversationBetweenTwoUsers = async (senderId, receiverId) => {
     });
     // console.log(foundConversation);
     // return foundConversation;
-    console.log(foundConversation[0]);
-    return foundConversation[0];
+    // console.log(foundConversation[0]);
+    return foundConversation;
 };
 
 export const createNewConversation = async (convoData) => {
@@ -72,14 +75,58 @@ export const getAllUserConversations = async (userId) => {
     })
     .sort({updatedAt: -1}) // list the newest conversation first
 
-    if(!foundConversations) throw createHttpError.BadRequest("Whoops! Looks like something went wrong...");
+    if(!foundConversations){
+        throw createHttpError.BadRequest("Whoops! Looks like something went wrong...");
+    } else {
+        //in addition, further populate the latestMessage.sender field within our `foundConversation` document with additional data from the UserModel
+        //populate information about the sender of the latest message
+        const populatedConversations = await UserModel.populate(foundConversations, {
+            path: "latestMessage.sender",
+            select: "firstName lastName email picture status",
+        })
+    
+        return populatedConversations;
+    };
+}
 
-    const populatedConversations = UserModel.populate(foundConversations, {
-        path: "latestMessage.sender",
-        select: "firstName lastName email picture status",
-    })
+export const updateLatestMessage = async (conversationId, message) => {
+    const updatedMessage = await ConversationModel.findByIdAndUpdate(conversationId, {
+        latestMessage: message,
+    });
 
-    return populatedConversations;
+    if(!updatedMessage) throw createHttpError.BadRequest("Whoops! Looks like something went wrong...");
+
+    return updatedMessage;
 };
 
 
+// export const findConversationBetweenTwoUsers = async (senderId, receiverId) => {
+//     let foundConversation = await ConversationModel.findOne({
+//         isGroupConversation: false,
+//         $and: [
+//             {users: {$elemMatch: {$eq: senderId}}},
+//             {users: {$elemMatch: {$eq: receiverId}}},
+//         ]
+//     })
+//     //find method only returns documents without any populated data besides the user ID's. We want the document to have additional information about the user(s) as defined in our userSchema/model as well, hence why we use the populate method => accepts an object with a `path` key that specifies what field in the conversationSchema we want to populate (in this case, the `users` field/key in the conversationSchema, which specifically references documents in the userSchema/Model), second is the `select` key, which specifies what pieces of data we want to include (cannot also exclude at the same time i.e "firstName lastName email picture status -password -confirmPassword")
+
+//     console.log(foundConversation);
+//     // console.log(foundConversation[0]);
+
+//     if(!foundConversation){
+//         throw createHttpError.BadRequest("Whoops! Looks like something went wrong...");
+//     } else {
+//         const populatedConversation = foundConversation.populate({
+//             path: "users",
+//             select: "firstName lastName email picture status",
+//             model: "UserModel"
+//         })
+//         .populate({
+//             path: "latestMessage.sender",
+//             select: "firstName lastName email picture status",
+//             model: "UserModel",
+//         });
+
+//         return populatedConversation;
+//     }
+// };
