@@ -1,7 +1,7 @@
 import express from "express";
 import trimRequest from "trim-request"; // middleware package that removes excess white spaces in request bodies
 
-import { register, login, logout, refreshToken } from "../controllers/auth-controller-functions.js";
+import { register, login, logout, refreshToken } from "../controllers/userAuth-controller-functions.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();

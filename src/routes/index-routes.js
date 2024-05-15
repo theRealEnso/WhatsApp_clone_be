@@ -2,9 +2,10 @@
 
 import express from "express";
 
-import authRoutes from './authentication-route.js';
+import authRoutes from './userAuth-routes.js';
 import conversationRoutes from './conversation-routes.js';
 import messageRoutes from "./message-routes.js"
+import searchUserRoutes from "./searchUser-routes.js"
 
 const router = express.Router();
 
@@ -17,9 +18,11 @@ router.use("/auth", authRoutes);
 //BUT, this needs to be appended further to the actual application in app.js
 
 router.use("/conversations", conversationRoutes);
-// http:localhost:9000/api/v1/conversations
+// http:localhost:9000/conversations
 
 router.use("/messages", messageRoutes);
-// http:localhost:9000/api/v1/messages
+// http:localhost:9000/messages
+
+router.use("/user", searchUserRoutes);
 
 export default router;

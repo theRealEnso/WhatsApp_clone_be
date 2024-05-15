@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 
 import { createAndAddUserToDB, signInUser, findUser } from "../services/user-services-functions.js";
 import { generateToken, verifyToken } from "../utils/token-functions.js";
+import { capitalizeFirstLetterInName } from "../utils/capitalize.js";
 
 // const secret_access_token = process.env.SECRET_ACCESS_TOKEN; // DOES NOT WORK FOR SOME REASON
 // const secret_refresh_token = process.env.SECRET_REFRESH_TOKEN; // DOES NOT WORK FOR SOME REASON
@@ -11,10 +12,14 @@ export const register = async (req, res, next) => {
         //extract pieces of form data from the incoming request from the front end
         const {firstName, lastName, email, password, confirmPassword, picture, status} = req.body;
 
-        //create a new user and add to DB using the data from the front end. No need to perform additional check to see if user already exists in DB, is already handled by validation
+        //create a new user and add to DB using the incoming data from the front end. No need to perform additional check to see if user already exists in DB, is already handled by validation
+
+        const capitalizedFirstName = capitalizeFirstLetterInName(firstName);
+        const capitalizedLastName = capitalizeFirstLetterInName(lastName);
+
         const newUser = await createAndAddUserToDB({
-            firstName,
-            lastName,
+            firstName: capitalizedFirstName,
+            lastName: capitalizedLastName,
             email, 
             password,
             confirmPassword,
@@ -141,7 +146,7 @@ export const refreshToken = async (req, res, next) => {
                     email: user.email,
                     picture: user.picture,
                     status: user.status,
-                    new_access_token: newAccessToken,
+                    access_token: newAccessToken,
                 }
             });
         };

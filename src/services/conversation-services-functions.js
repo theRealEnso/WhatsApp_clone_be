@@ -18,8 +18,9 @@ export const findConversationBetweenTwoUsers = async (senderId, receiverId) => {
     })
     //find method only returns documents without any populated data besides the user ID's. We want the document to have additional information about the user(s) as defined in our userSchema/model as well, hence why we use the populate method => accepts an object with a `path` key that specifies what field in the conversationSchema we want to populate (in this case, the `users` field/key in the conversationSchema, which specifically references documents in the userSchema/Model), second is the `select` key, which specifies what pieces of data we want to include (cannot also exclude at the same time i.e "firstName lastName email picture status -password -confirmPassword")
 
-    console.log(foundConversation);
-    // console.log(foundConversation[0]);
+    // console.log(typeof foundConversation)
+    console.log(foundConversation); // prints an array containing conversation object(s)
+    console.log(foundConversation[0]); // prints actual conversation object in array
 
     if(!foundConversation) throw createHttpError.BadRequest("Whoops! Looks like something went wrong...");
 
@@ -29,10 +30,8 @@ export const findConversationBetweenTwoUsers = async (senderId, receiverId) => {
         path: "latestMessage.sender",
         select: "firstName lastName email picture status"
     });
-    // console.log(foundConversation);
-    // return foundConversation;
-    // console.log(foundConversation[0]);
-    return foundConversation;
+;
+    return foundConversation[0];
 };
 
 export const createNewConversation = async (convoData) => {

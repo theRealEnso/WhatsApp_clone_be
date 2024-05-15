@@ -2,7 +2,7 @@ import createHttpError from "http-errors"
 import { verifyToken } from "../utils/token-functions.js";
 // import { findUser } from "../services/user-services-functions.js";
 
-//every request that comes in from the front end always has a headers object. We want to check this headers object to see if this request is coming form an authenticated user.
+//every request that comes in from the front end always has a headers object. We want to check this headers object to see if this request is coming from an authenticated user.
 // the headers object needs to have a key value pair-- an `authorization` key with a value containing a bearer token, with the bearer token following the standard `Bearer <access_key>` format. If this exists, then it means the incoming request is coming from an authenticated user
 export const authMiddleware = async (req, res, next) => {
     if(!req.headers['authorization']){

@@ -54,11 +54,20 @@ app.use(fileUpload({
 app.use(cors());
 
 app.use("/api/v1", routes);
-//final result(s)
-//http:localhost:9000/api/v1/auth/register
-//http:localhost:9000/api/v1/auth/login
-//http:localhost:9000/api/v1/auth/logout
-//http:localhost:9000/api/v1/auth/refreshToken
+//final result(s) for auth routes
+//http://localhost:9000/api/v1/auth/register
+//http://localhost:9000/api/v1/auth/login
+//http://localhost:9000/api/v1/auth/logout
+//http://localhost:9000/api/v1/auth/refreshToken
+
+//final result(s) for conversation routes
+//http://localhost:9000/api/v1/conversations
+
+//final result(s) for message routes
+//http://localhost:9000/api/v1/messages
+
+//final result(s) for searchUser routes
+//http://localhost:9000/api/v1/user?
 
 
 app.get("/test", (req, res) => {

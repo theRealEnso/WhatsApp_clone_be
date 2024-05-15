@@ -8,6 +8,7 @@ export const createNewOrOpenExistingConversation = async (req, res, next) => {
     try {
         //need id of the sender
         const sender_id = req.user.id; // get this from the auth middleware (decoded jsonwebtoken)
+
         // need id of the user we are sending to
         const {recipient_id} = req.body;
         if(!recipient_id){
@@ -29,7 +30,9 @@ export const createNewOrOpenExistingConversation = async (req, res, next) => {
             }
 
             const newConversation = await createNewConversation(conversationData);
+            // console.log(newConversation);
             const populatedConversation = await populateConversation(newConversation._id, "users", "firstName lastName email picture status");
+            // console.log(`I AM THE POPULATED CONVO! : ${populatedConversation}`);
             res.status(200).json(populatedConversation);
         }
 
@@ -38,14 +41,17 @@ export const createNewOrOpenExistingConversation = async (req, res, next) => {
     }
 }
 
+//get all conversations of the user that is currently logged in
 export const getAllConversations = async (req, res, next) => {
     try {
         const user_id = req.user.id;
         const foundConversations = await getAllUserConversations(user_id);
 
         if(foundConversations){
-            res.status(200).json(foundConversations);
-        };
+            res.json(foundConversations);
+        } else {
+            throw createHttpError.BadRequest("Whoops! Couldn't find what you were looking for")
+        }
 
     } catch(error) {
         next(error)

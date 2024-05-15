@@ -29,12 +29,12 @@ export const createAndAddUserToDB = async (userData) => {
     };
 
     //check if firstName follows schema requirements
-    if(!validator.isLength(firstName, {min: 2, max: 16})){
+    if(!validator.isLength(firstName, {min: 2, max: 24})){
         throw createHttpError.BadRequest("Please make sure your first name is between 2 and 24 characters long");
     }
 
     //check if lastName follows schema requirements
-    if(!validator.isLength(lastName, {min: 2, max: 16})){
+    if(!validator.isLength(lastName, {min: 2, max: 24})){
         throw createHttpError.BadRequest("Please make sure your last name is between 2 and 24 characters long");
     }
 
@@ -100,3 +100,16 @@ export const findUser = async (id) => {
 
     return foundUser;
 };
+
+export const searchForUsers = async (keyword) => {
+    const foundUser = await UserModel.find({
+        $or: [
+            {name: {$regex: keyword, $options: "i"}},
+            {email: {$regex: keyword, $options: "i"}},
+        ]
+    });
+
+    if(!foundUser) throw createHttpError.BadRequest("Whoops! Looks like we couldn't find what you were looking for...");
+
+    return foundUser;
+}
