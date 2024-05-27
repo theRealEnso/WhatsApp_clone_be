@@ -1,6 +1,9 @@
+import mongoose from 'mongoose';
+import { Server } from 'socket.io';
 import app from './app.js';
 import logger from './configs/winston-logger.js';
-import mongoose from 'mongoose';
+
+import { SocketListener } from './utils/socket-listener.js';
 
 //env variables
 const {DATABASE_URL} = process.env;
@@ -19,7 +22,7 @@ const connectToDB = async () => {
             logger.error(`'DATABASE_URL' environment variable is not defined!`);
         };
         
-        const mongoDBConnection = await mongoose.connect(DATABASE_URL, {});
+        await mongoose.connect(DATABASE_URL, {});
         logger.info(`Connected to MongoDB!`);
     } catch (error) {
         logger.error(`Error connecting to MongoDB! : ${error}`);
@@ -32,6 +35,19 @@ connectToDB();
 let server;
 server = app.listen(port, () => {
     logger.info(`server is listening on port ${port}!!!`)
+});
+
+//socket io
+const io = new Server(server, {
+    pingTimeout: 60000,
+    cors: {
+        origin: process.env.CLIENT_ENDPOINT,
+    },
+});
+
+io.on("connection", (socket) => {
+    logger.info("Socket IO connected successfully!");
+    SocketListener(socket);
 });
 
 ///////     handle server errors    ////////
