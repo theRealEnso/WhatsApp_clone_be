@@ -1,3 +1,5 @@
+//modularizing our server set up.
+// this app.js file will be imported into the index.js file to keep the code cleaner. Our npm packages + express will be mainly used here
 import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan"; // this package logs to the console information about any and all requests that our server receives (i.e. type of requests, where request was sent, status, time for completion, etc)

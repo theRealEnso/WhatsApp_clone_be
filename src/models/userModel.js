@@ -58,6 +58,7 @@ const userSchema = mongoose.Schema(
 //middleware that executes before a document of this schema is saved to the database
 // `save` argument specifies that this middleware should run before the save() function is called on a document of this schema
 // using bcrypt package with promises => https://www.npmjs.com/package/bcrypt
+//reminder that the keyword `this` means something different when using arrow functions! (likely refers to the global or window object),  so we use the traditional function keyword here instead so that `this` refers to the document object
 userSchema.pre("save", async function (next) {
     try {
         if(this.$isNew) {

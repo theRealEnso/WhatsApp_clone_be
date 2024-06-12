@@ -1,3 +1,4 @@
+// code that handles the connection of our express server to mongo DB + socket IO connection
 import mongoose from 'mongoose';
 import { Server } from 'socket.io';
 import app from './app.js';
@@ -26,7 +27,7 @@ const connectToDB = async () => {
         logger.info(`Connected to MongoDB!`);
     } catch (error) {
         logger.error(`Error connecting to MongoDB! : ${error}`);
-        process.exit(1);
+        process.exit(1);r
     }
 }
 
@@ -37,17 +38,20 @@ server = app.listen(port, () => {
     logger.info(`server is listening on port ${port}!!!`)
 });
 
-//socket io
+//setup socket io on server to listen for connections coming from our front end app
 const io = new Server(server, {
+    //options
     pingTimeout: 60000,
     cors: {
         origin: process.env.CLIENT_ENDPOINT,
     },
 });
 
+//upon a successful connection from a front-end client, each client gets their own socket object. We run the SocketListener function that uses the socket object + io instance as inputs
 io.on("connection", (socket) => {
+    // console.log(socket);
     logger.info("Socket IO connected successfully!");
-    SocketListener(socket);
+    SocketListener(socket, io);
 });
 
 ///////     handle server errors    ////////

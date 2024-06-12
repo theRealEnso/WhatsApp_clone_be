@@ -41,7 +41,7 @@ export const getAllUserMessagesInsideConversation = async (req, res, next) => {
         }
 
         const foundMessages = await getMessages(conversation_id);
-        res.send(foundMessages);
+        res.json(foundMessages);
     } catch(error) {
         next(error);
     }

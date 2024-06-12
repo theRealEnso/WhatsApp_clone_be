@@ -1,4 +1,5 @@
 //modularizing our routes rather than defining absolute paths for everything inside of the app.js file
+//this will be imported and used in the app.js file
 
 import express from "express";
 
