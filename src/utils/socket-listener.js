@@ -1,15 +1,22 @@
 let onlineUsers = [];
 export const SocketListener = (socket, io) => {
     //each user that connects to the server is assigned a unique `socket` object, thus, each user is connected through an individual socket.
+    //upon receiving the "user logged in", the server joins the socket to a room named after the user's ID
     //unique socket object for each user allows the server to manage and differentiate between multiple users simultaneously.
     //The front end emits the user id so that we can receive it here. When user joins or opens the application, server makes the socket join a room named after the user's user id
-    socket.on("join", (user_id) => {
+    socket.on("user logged in", (user_id) => {
         socket.join(user_id);
         console.log(`user has joined: ${user_id}`);
 
         //add the user that joined to the onlineUsers array
         if(!onlineUsers.some((u) => u.userId === user_id)){
-            onlineUsers.push({userId: user_id, socketId: socket.id });
+            onlineUsers.push(
+                {
+                    userId: user_id, socketId: socket.id 
+                }
+            );
+
+            console.log("ONLINE USERS ARRAY ======>", onlineUsers);
         }
 
         //send online users to the frontend
@@ -20,14 +27,15 @@ export const SocketListener = (socket, io) => {
     socket.on("user signed out", (user_id) => {
         console.log(`the following user has signed out: ${user_id}`);
         onlineUsers = onlineUsers.filter((u) => u.userId !== user_id);
-        socket.emit("get-online-users", onlineUsers);
+        console.log("ONLINE USERS ARRAY ======>", onlineUsers);
+        socket.emit("get-updated-online-users", onlineUsers);
     })
 
     //socket disconnect, or when a user disconnects (closes browser window)
     socket.on("disconnect", () => {
         onlineUsers = onlineUsers.filter((u) => u.socketId !== socket.id);
         io.emit("get-online-users", onlineUsers); // cannot use socket.emit because when user disconnects, they disconnect from the socket, so the socket won't exist for us to use. Must use io instead
-    })
+    });
 
     //join a conversation room
     socket.on("join conversation room", (conversationId) => {

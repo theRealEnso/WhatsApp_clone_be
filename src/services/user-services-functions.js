@@ -13,8 +13,8 @@ export const createAndAddUserToDB = async (userData) => {
     const {firstName, lastName, email, password, confirmPassword, picture, status} = userData;
 
     //check if a registered email already exists
-    const findUserInDB = await UserModel.findOne({email});
-    if(findUserInDB){
+    const foundUserInDB = await UserModel.findOne({email});
+    if(foundUserInDB){
         throw createHttpError.Conflict("The email provided is already in use. Please try again with a different email address");
     }
 
@@ -90,6 +90,8 @@ export const signInUser = async (email, password) => {
     const checkedPassword = await bcrypt.compare(password, hashedPassword);
     if(checkedPassword){
         return existingUser;
+    } else {
+        throw createHttpError.BadRequest("Passwords do not match!")
     }
 };
 

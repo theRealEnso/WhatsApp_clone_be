@@ -16,7 +16,7 @@ router.use("/auth", authRoutes);
 // http://localhost:9000/auth/login
 // http://localhost:9000/auth/logout
 // http://localhost:9000/auth/refreshToken
-//BUT, this needs to be appended further to the actual application in app.js
+//BUT, this needs to be appended further to the actual application in app.js to give us our final API routes
 
 router.use("/conversations", conversationRoutes);
 // http:localhost:9000/conversations
