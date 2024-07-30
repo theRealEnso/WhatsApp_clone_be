@@ -19,8 +19,11 @@ export const SocketListener = (socket, io) => {
             console.log("ONLINE USERS ARRAY ======>", onlineUsers);
         }
 
-        //send online users to the frontend
+        //send online users to the front-end
         io.emit("get-online-users", onlineUsers);
+
+        //send socket id to the front-end
+        io.emit("setup socket", socket.id);
     });
 
     // when user signs out of the app, but the browser window is still open
@@ -72,6 +75,26 @@ export const SocketListener = (socket, io) => {
     socket.on("stopped typing", (conversationId) => {
         console.log(`stopped typing in.... ${conversationId}`)
         socket.in(conversationId).emit("stopped typing", {typingStatus: "stopped typing", conversationId});
+    });
+
+    //video calls
+    socket.on("call user", (callerData) => {
+        console.log(callerData);
+
+        //get id of the user receiving the call that is emitted from the front end
+        const userReceivingCall_id = callerData.userToCall;
+
+        //use the id of the user receiving the call to check if that same id is contained in the onlineUsers array
+        const userReceivingCall = onlineUsers.find((u) => u.userId === userReceivingCall_id);
+        if(!userReceivingCall) return;
+
+        //finally, once the user we are calling is located, then get their socket ID in order to emit the sender's data to them
+        io.to(userReceivingCall.socketId).emit("received call", {
+            signal: callerData.signal,
+            from: callerData.from,
+            name: callerData.name,
+            picture: callerData.picture,
+        });
     });
 };
 
