@@ -6,9 +6,9 @@ export const SocketListener = (socket, io) => {
     //The front end emits the user id so that we can receive it here. When user joins or opens the application, server makes the socket join a room named after the user's user id
     socket.on("user logged in", (user_id) => {
         socket.join(user_id);
-        console.log(`user has joined: ${user_id}`);
+        console.log(`user ${user_id} has joined!`);
 
-        //add the user that joined to the onlineUsers array
+        //add the user that joined to the onlineUsers array AND include their socket id!
         if(!onlineUsers.some((u) => u.userId === user_id)){
             onlineUsers.push(
                 {
@@ -22,7 +22,7 @@ export const SocketListener = (socket, io) => {
         //send online users to the front-end
         io.emit("get-online-users", onlineUsers);
 
-        //send socket id to the front-end
+        //send socket id of any connected user to the front-end
         io.emit("setup socket", socket.id);
     });
 
@@ -62,7 +62,7 @@ export const SocketListener = (socket, io) => {
             if(user._id === message.sender._id){
                 return; // return in the context of `forEach` just skips to the next iteration of the loop
             } else {
-                socket.in(user._id).emit("received message", message);
+                socket.to(user._id).emit("received message", message);
             } 
         });
     });
@@ -70,14 +70,15 @@ export const SocketListener = (socket, io) => {
     //show typing status
     socket.on("typing", (conversationId) => {
         console.log(`typing in... ${conversationId}`)
-        socket.in(conversationId).emit("typing", {typingStatus: "typing...", conversationId});
+        socket.to(conversationId).emit("typing", {typingStatus: "typing...", conversationId});
     });
     socket.on("stopped typing", (conversationId) => {
         console.log(`stopped typing in.... ${conversationId}`)
-        socket.in(conversationId).emit("stopped typing", {typingStatus: "stopped typing", conversationId});
+        socket.to(conversationId).emit("stopped typing", {typingStatus: "stopped typing", conversationId});
     });
 
-    //video calls
+    //video calls -----------------------------------------------
+    //call user
     socket.on("call user", (callerData) => {
         console.log(callerData);
 
@@ -95,6 +96,17 @@ export const SocketListener = (socket, io) => {
             name: callerData.name,
             picture: callerData.picture,
         });
+    });
+    //answer call
+    socket.on("answer call", (callerData) => {
+        //emit the responder's signal back to the initator's socket ID
+        io.to(callerData.to).emit("call accepted", callerData.signal);
+    });
+
+    //ending call
+
+    socket.on("end call", (initiatorSocketId) => {
+        io.to(initiatorSocketId).emit("call ended");
     });
 };
 
