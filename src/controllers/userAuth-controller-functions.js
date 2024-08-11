@@ -1,6 +1,6 @@
 import createHttpError from "http-errors";
 
-import { createAndAddUserToDB, signInUser, findUser } from "../services/user-services-functions.js";
+import { createAndAddUserToDB, signInUser, findUser, getUsers } from "../services/user-services-functions.js";
 import { generateToken, verifyToken } from "../utils/token-functions.js";
 import { capitalizeFirstLetterInName } from "../utils/capitalize.js";
 

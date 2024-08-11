@@ -38,8 +38,8 @@ export const createNewOrOpenExistingConversation = async (req, res, next) => {
 
     } catch(error) {
         next(error);
-    }
-}
+    };
+};
 
 //get all conversations of the user that is currently logged in
 export const getAllConversations = async (req, res, next) => {

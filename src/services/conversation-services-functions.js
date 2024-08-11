@@ -68,7 +68,7 @@ export const populateConversation = async (conversationId, fieldsToPopulate, dat
     } else {
         const populatedConversation = foundConversation.populate({
             path: fieldsToPopulate,
-            select: dataToInclude
+            select: dataToInclude,
         });
 
         return populatedConversation;

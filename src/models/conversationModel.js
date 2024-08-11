@@ -15,7 +15,10 @@ const conversationSchema = mongoose.Schema({
     },
 
     users: [
-        {type: ObjectId, ref: "UserModel"}
+        {
+            type: ObjectId, 
+            ref: "UserModel",
+        }
     ],
 
     isAdmin: {

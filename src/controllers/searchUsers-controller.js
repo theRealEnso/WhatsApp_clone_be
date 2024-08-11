@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 import logger from "../configs/winston-logger.js";
 
-import { searchForUsers } from "../services/user-services-functions.js";
+import { searchForUsers, getUsers } from "../services/user-services-functions.js";
 
 export const searchUsers = async (req, res, next) => {
     try {
@@ -19,5 +19,14 @@ export const searchUsers = async (req, res, next) => {
 
     } catch (error) {
         next(error);
+    };
+};
+
+export const getAllUsers = async (req, res, next) => {
+    try {
+        const foundUsers = await getUsers();
+        res.json(foundUsers);
+    } catch(error) {
+        next(error)
     };
 };

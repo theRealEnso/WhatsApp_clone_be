@@ -114,4 +114,12 @@ export const searchForUsers = async (keyword) => {
     if(!foundUser) throw createHttpError.BadRequest("Whoops! Looks like we couldn't find what you were looking for...");
 
     return foundUser;
-}
+};
+
+export const getUsers = async () => {
+    const users = await UserModel.find({});
+
+    if(!users) throw createHttpError.BadRequest("Whoops! Looks like something went wrong");
+
+    return users;
+};
