@@ -2,8 +2,10 @@ import logger from "../configs/winston-logger.js";
 import createHttpError from "http-errors";
 
 import { findUser } from "../services/user-services-functions.js";
-import { findConversationBetweenTwoUsers, createNewConversation, populateConversation, getAllUserConversations } from "../services/conversation-services-functions.js";
+import { findConversationBetweenTwoUsers, createNewConversation, populateConversation, getAllUserConversations, findGroupConversation} from "../services/conversation-services-functions.js";
 
+
+//create conversation between two users
 export const createNewOrOpenExistingConversation = async (req, res, next) => {
     try {
         //need id of the sender
@@ -37,6 +39,37 @@ export const createNewOrOpenExistingConversation = async (req, res, next) => {
         }
 
     } catch(error) {
+        next(error);
+    };
+};
+
+//create group conversation
+
+export const createGroupConversation = async (req, res, next) => {
+    try {
+        const sender_id = req.user.id;
+        console.log(sender_id);
+        const {addedUsers, groupConversationName} = req.body;
+
+        if(!addedUsers || !groupConversationName) throw createHttpError.BadRequest("Please include group conversation name and users you would like to include in the group!");
+
+        if(addedUsers.length < 2) throw createHttpError.BadRequest("At least 2 users are required to start a group chat");
+
+        const users = [...addedUsers, sender_id]
+
+        const groupConversationData = {
+            name: groupConversationName,
+            isGroupConversation: true,
+            users: users,
+            admin: sender_id,
+            picture: process.env.DEFAULT_GROUP_PICTURE,
+        };
+
+        const newGroupConversation = await createNewConversation(groupConversationData);
+        const populatedGroupConversation = await populateConversation(newGroupConversation._id, "users", "firstName lastName email picture status");
+        res.json(populatedGroupConversation);
+        
+    } catch(error){
         next(error);
     };
 };

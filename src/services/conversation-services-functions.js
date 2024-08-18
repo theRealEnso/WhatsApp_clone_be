@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import createHttpError from "http-errors";
 
 import { ConversationModel } from "../models/conversationModel.js";
@@ -50,6 +51,22 @@ export const findConversationBetweenTwoUsers = async (senderId, receiverId) => {
     // ** OLD CODE, another way of populating data for reference ** //
 
     return foundConversation[0];
+};
+
+export const findGroupConversation = async (users) => {
+
+    const existingGroupConversation = await ConversationModel.findOne({
+        isGroupConversation: true,
+        users: {$all: users},
+    });
+
+    if(!existingGroupConversation){
+        throw createHttpError.BadRequest("Whoops! No group conversation found!");
+    };
+
+    console.log(existingGroupConversation);
+
+    return existingGroupConversation;
 };
 
 export const createNewConversation = async (convoData) => {
