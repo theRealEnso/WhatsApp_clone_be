@@ -68,13 +68,15 @@ export const SocketListener = (socket, io) => {
     });
 
     //show typing status
-    socket.on("typing", (conversationId) => {
-        console.log(`typing in... ${conversationId}`)
-        socket.to(conversationId).emit("typing", {typingStatus: "typing...", conversationId});
+    socket.on("typing", (typingObject) => {
+        const {conversation_id, userTyping} = typingObject
+        console.log(`typing in... ${conversation_id}`)
+        socket.to(conversation_id).emit("typing", {typingStatus: "typing...", conversation_id, userTyping});
     });
-    socket.on("stopped typing", (conversationId) => {
-        console.log(`stopped typing in.... ${conversationId}`)
-        socket.to(conversationId).emit("stopped typing", {typingStatus: "stopped typing", conversationId});
+    socket.on("stopped typing", (typingObject) => {
+        const {conversation_id, userTyping} = typingObject
+        console.log(`stopped typing in.... ${conversation_id}`)
+        socket.to(conversation_id).emit("stopped typing", {typingStatus: "stopped typing", conversation_id, userTyping});
     });
 
     //video calls -----------------------------------------------
