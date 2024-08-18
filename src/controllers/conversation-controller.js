@@ -12,32 +12,39 @@ export const createNewOrOpenExistingConversation = async (req, res, next) => {
         const sender_id = req.user.id; // get this from the auth middleware (decoded jsonwebtoken)
 
         // need id of the user we are sending to
-        const {recipient_id} = req.body;
+        const {recipient_id, isGroupConversation} = req.body;
         if(!recipient_id){
             logger.error(`Please provide the ID of the user you want to create a conversation with`);
             throw createHttpError.BadRequest("Whoops! Something went wrong...");
         }
 
+        if(isGroupConversation === false){
         //check if an existing chat conversation between two already exists. If it does, send it back. Otherwise, create a new conversation, and then populate the new conversation with data of the users excluding their passwords
-        const conversationBetweenTwoUsers = await findConversationBetweenTwoUsers(sender_id, recipient_id);
-        if(conversationBetweenTwoUsers){
-            res.json(conversationBetweenTwoUsers);
-            return;
-        } else {
-            const recipient_user = await findUser(recipient_id);
-            const conversationData = {
-                name: `${recipient_user.firstName} ${recipient_user.lastName}`,
-                isGroupConversation: false,
-                users: [sender_id, recipient_id]
+            const conversationBetweenTwoUsers = await findConversationBetweenTwoUsers(sender_id, recipient_id);
+            if(conversationBetweenTwoUsers){
+                res.json(conversationBetweenTwoUsers);
+                return;
+            } else {
+                const recipient_user = await findUser(recipient_id);
+                const conversationData = {
+                    name: `${recipient_user.firstName} ${recipient_user.lastName}`,
+                    isGroupConversation: false,
+                    users: [sender_id, recipient_id]
+                }
+
+                const newConversation = await createNewConversation(conversationData);
+                // console.log(newConversation);
+                const populatedConversation = await populateConversation(newConversation._id, "users", "firstName lastName email picture status");
+                // console.log(`I AM THE POPULATED CONVO! : ${populatedConversation}`);
+                res.status(200).json(populatedConversation);
             }
-
-            const newConversation = await createNewConversation(conversationData);
-            // console.log(newConversation);
-            const populatedConversation = await populateConversation(newConversation._id, "users", "firstName lastName email picture status");
-            // console.log(`I AM THE POPULATED CONVO! : ${populatedConversation}`);
-            res.status(200).json(populatedConversation);
-        }
-
+        } else {
+            //find the group conversation using the ID sent from the front end
+            const groupConvo_id = isGroupConversation
+            const groupConvo = await findGroupConversation(groupConvo_id);
+            res.json(groupConvo);
+        };
+    
     } catch(error) {
         next(error);
     };

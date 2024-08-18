@@ -53,12 +53,9 @@ export const findConversationBetweenTwoUsers = async (senderId, receiverId) => {
     return foundConversation[0];
 };
 
-export const findGroupConversation = async (users) => {
+export const findGroupConversation = async (convoId) => {
 
-    const existingGroupConversation = await ConversationModel.findOne({
-        isGroupConversation: true,
-        users: {$all: users},
-    });
+    const existingGroupConversation = await ConversationModel.findById(convoId);
 
     if(!existingGroupConversation){
         throw createHttpError.BadRequest("Whoops! No group conversation found!");
