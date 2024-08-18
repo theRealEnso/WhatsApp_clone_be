@@ -29,7 +29,14 @@ const conversationSchema = mongoose.Schema({
     latestMessage: {
         type: ObjectId,
         ref: "MessageModel"
-    }
+    },
+
+    picture: {
+        type: String,
+        required: true,
+        default: process.env.DEFAULT_GROUP_PICTURE,
+    },
+    
 }, {collection: "conversations", timestamps: true});
 
 export const ConversationModel = mongoose.models.ConversationModel || mongoose.model("ConversationModel", conversationSchema);
