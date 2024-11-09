@@ -90,9 +90,9 @@ export const populateConversation = async (conversationId, fieldsToPopulate, dat
 };
 
 export const getAllUserConversations = async (userId) => {
-    const foundConversations = await ConversationModel.find({
+    const foundConversations = await ConversationModel.find({ //returns an array of conversations that contains the specified userId
         users: {$elemMatch: {$eq: userId}}
-    })
+    }) //after fetching conversations, immediately populate specific fields in each conversation document
     .populate({
         path: "users",
         select: "firstName lastName email picture status"
@@ -104,17 +104,42 @@ export const getAllUserConversations = async (userId) => {
     .populate({
         path: "latestMessage",
     })
-    .sort({updatedAt: -1}) // list the newest conversation first
+    .sort({updatedAt: -1}) // list the newest conversation first (sorts conversations in descending order according to the upddatedAt timestamps)
 
     if(!foundConversations){
         throw createHttpError.BadRequest("Whoops! Looks like something went wrong...");
     } else {
         //in addition, further populate the latestMessage.sender field within our `foundConversation` document with additional data from the UserModel
         //populate information about the sender of the latest message
-        const populatedConversations = await UserModel.populate(foundConversations, {
-            path: "latestMessage.sender",
-            select: "firstName lastName email picture status",
-        })
+
+        const populatedConversations = await Promise.all(
+            foundConversations.map((conversation) => {
+                if(conversation.latestMessage){
+                    conversation.populate({
+                        path: "latestMessage",
+                        model: "MessageModel",
+                        populate: {
+                            path: "sender",
+                            select: "firstName lastName email picture status",
+                            model: "UserModel"
+                        }
+                    });
+                };
+
+                return conversation;
+            })
+        )
+        //** previous working code. Mongoose's Model.populate() method likely already handles promises under the hood and abstracts this away. It also automatically iterates over each document in the array, performing the specified operation on each one*/
+        //this solution (using UserModel.populate()) is likely to be faster and more efficient for large datasets, especially if Mongoose can batch population requests.
+        // const populatedConversations = await UserModel.populate(foundConversations, {
+        //     path: "latestMessage.sender",
+        //     select: "firstName lastName email picture status",
+        // });
+
+        //notes to self: .populate method returns a promise (and a promise is an object representation of the eventual completio of a task)
+        //we loop through the foundConversations array and attempt to populate it with additional data. If we don't use Promise.all, then each task would have to wait for the previous one to complete, which slows down the code.
+        //Promise.all is a powerful tool for managing multiple asynchronous operations concurrently. When used with await, it allows all promises in the array to resolve independently and only waits until every promise is fulfilled before continuing. And, by awaiting the Promise.all, this really only returns a single final promise in the end. This reduces overall runtime, as each operation starts immediately rather than waiting for others to finish. In your code, it ensures that each conversation document is populated as quickly as possible without unnecessary delay.
+        // manually doing promise.all and looping through each document to populate each one May perform similarly for small datasets, but it could become slower or more resource-intensive with very large datasets due to the higher number of independent database calls (unable to batch requests?)
     
         return populatedConversations;
     };

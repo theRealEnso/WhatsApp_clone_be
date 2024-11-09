@@ -9,7 +9,7 @@ import { capitalizeFirstLetterInName } from "../utils/capitalize.js";
 
 export const register = async (req, res, next) => {
     try {
-        //extract pieces of form data from the incoming request from the front end
+        //extract pieces of form data from the incoming request body from the front end
         const {firstName, lastName, email, password, confirmPassword, picture, status} = req.body;
 
         //create a new user and add to DB using the incoming data from the front end. No need to perform additional check to see if user already exists in DB, is already handled by validation
@@ -131,7 +131,7 @@ export const refreshToken = async (req, res, next) => {
         console.log(verifiedUser);
         // res.send(verifiedUser);
 
-        //once user ID is verified, then use the same ID to generate a new access token
+        //once user ID is verified, then use the the ID to generate a new access token
         if(verifiedUser){
             const verifiedUserId = verifiedUser.id;
             const user = await findUser(verifiedUserId);

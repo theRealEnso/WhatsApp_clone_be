@@ -9,7 +9,7 @@ import { findConversationBetweenTwoUsers, createNewConversation, populateConvers
 export const createNewOrOpenExistingConversation = async (req, res, next) => {
     try {
         //need id of the sender
-        const sender_id = req.user.id; // get this from the auth middleware (decoded jsonwebtoken)
+        const sender_id = req.user.id; // get this from the auth middleware from authMiddleware.js (decoded jsonwebtoken)
 
         // need id of the user we are sending to
         const {recipient_id, isGroupConversation} = req.body;
