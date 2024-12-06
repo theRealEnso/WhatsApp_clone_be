@@ -12,7 +12,8 @@ export const SocketListener = (socket, io) => {
         if(!onlineUsers.some((u) => u.userId === user_id)){
             onlineUsers.push(
                 {
-                    userId: user_id, socketId: socket.id 
+                    userId: user_id, 
+                    socketId: socket.id, 
                 }
             );
 
@@ -99,6 +100,7 @@ export const SocketListener = (socket, io) => {
             picture: callerData.picture,
         });
     });
+    
     //answer call
     socket.on("answer call", (callerData) => {
         //emit the responder's signal back to the initator's socket ID

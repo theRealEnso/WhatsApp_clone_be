@@ -5,22 +5,23 @@ import { findUser } from "../services/user-services-functions.js";
 import { findConversationBetweenTwoUsers, createNewConversation, populateConversation, getAllUserConversations, findGroupConversation} from "../services/conversation-services-functions.js";
 
 
-//create conversation between two users
+//creating or opening a conversastion
 export const createNewOrOpenExistingConversation = async (req, res, next) => {
     try {
         //need id of the sender
         const sender_id = req.user.id; // get this from the auth middleware from authMiddleware.js (decoded jsonwebtoken)
 
-        // need id of the user we are sending to
+        // need id of the user we are sending to as well as whether or not the conversation is/isn't a group conversation
         const {recipient_id, isGroupConversation} = req.body;
         if(!recipient_id){
             logger.error(`Please provide the ID of the user you want to create a conversation with`);
             throw createHttpError.BadRequest("Whoops! Something went wrong...");
         }
 
+        //if it is not a group conversation, then it must be a conversation between just two users, so proceed with creating/opening conversation with just two users
         if(isGroupConversation === false){
         //check if an existing chat conversation between two already exists. If it does, send it back. Otherwise, create a new conversation, and then populate the new conversation with data of the users excluding their passwords
-            const conversationBetweenTwoUsers = await findConversationBetweenTwoUsers(sender_id, recipient_id);
+            const conversationBetweenTwoUsers = await findConversationBetweenTwoUsers(sender_id, recipient_id, false);
             if(conversationBetweenTwoUsers){
                 res.json(conversationBetweenTwoUsers);
                 return;
@@ -38,9 +39,11 @@ export const createNewOrOpenExistingConversation = async (req, res, next) => {
                 // console.log(`I AM THE POPULATED CONVO! : ${populatedConversation}`);
                 res.status(200).json(populatedConversation);
             }
+
+        //otherwise, we are indeed working with a group conversation
         } else {
-            //find the group conversation using the ID sent from the front end
-            const groupConvo_id = isGroupConversation
+            //find the group conversation using the ID sent from the front end. Front end sends the conversation ID of the group conversation if it is a group convo, or a false boolean value if it is not a group convo
+            const groupConvo_id = isGroupConversation;
             const groupConvo = await findGroupConversation(groupConvo_id);
             res.json(groupConvo);
         };

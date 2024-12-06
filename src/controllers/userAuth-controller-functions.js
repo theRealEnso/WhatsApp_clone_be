@@ -40,6 +40,7 @@ export const register = async (req, res, next) => {
         expirationDate.setDate(expirationDate.getDate() + 30);
         res.cookie("refreshToken", userRefreshToken, { //res.cookie takes 3 params: 1.) name of the cookie 2.) data to store in cookie, 3.) options object
             path: "/api/v1/auth/refreshToken",
+            httpOnly: true,
             expires: expirationDate,
         });
 
@@ -81,7 +82,8 @@ export const login = async (req, res, next) => {
         const expirationDate = new Date();
         expirationDate.setDate(expirationDate.getDate() + 30);
         res.cookie("refreshToken", userRefreshToken, {
-            path: "api/v1/auth/refreshToken",
+            path: "/api/v1/auth/refreshToken",
+            httpOnly: true,
             expires: expirationDate,
         });
 
@@ -119,7 +121,7 @@ export const refreshToken = async (req, res, next) => {
     try {
         //retrieve refresh token from stored cookie on the server
         const storedRefreshToken = req.cookies.refreshToken;
-        if(!storedRefreshToken) throw createHttpError.Unauthorized("Please log back into your account");
+        if(!storedRefreshToken) throw createHttpError.Unauthorized("Refresh token not found or expired. Please log back into your account");
 
         //verify the user and their ID using the stored refresh token, checking it against our secret refresh token
         const verifiedUser = await verifyToken(storedRefreshToken, process.env.SECRET_REFRESH_TOKEN); // jwt function returns a user object containing the user id:
@@ -132,24 +134,24 @@ export const refreshToken = async (req, res, next) => {
         // res.send(verifiedUser);
 
         //once user ID is verified, then use the the ID to generate a new access token
-        if(verifiedUser){
-            const verifiedUserId = verifiedUser.id;
-            const user = await findUser(verifiedUserId);
-            const newAccessToken = await generateToken({id: user._id}, process.env.SECRET_ACCESS_TOKEN, "1d");
+        if(!verifiedUser) throw createHttpError.Unauthorized("Invalid or expired refreshToken");
 
-            res.json({
-                message: "successfully generated a new access token for the user!",
-                user: {
-                    _id: user._id,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    email: user.email,
-                    picture: user.picture,
-                    status: user.status,
-                    access_token: newAccessToken,
-                }
-            });
-        };
+        const newAccessToken = await generateToken({id: verifiedUser.id}, process.env.SECRET_ACCESS_TOKEN, "1d");
+
+        const user = await findUser(verifiedUser.id);
+
+        res.json({
+            message: "successfully generated a new access token for the user!",
+            user: {
+                _id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                picture: user.picture,
+                status: user.status,
+                access_token: newAccessToken,
+            }
+        });
         // res.status.(500).json({message: error.message})
     } catch(error) {
         next(error); // using this instead => next will pass this error to the next middleware for error handling, which is the error handling middleware we defined in app.js

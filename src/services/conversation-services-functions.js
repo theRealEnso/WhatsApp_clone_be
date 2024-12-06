@@ -4,9 +4,9 @@ import createHttpError from "http-errors";
 import { ConversationModel } from "../models/conversationModel.js";
 import { UserModel } from "../models/userModel.js";
 
-export const findConversationBetweenTwoUsers = async (senderId, receiverId) => {
+export const findConversationBetweenTwoUsers = async (senderId, receiverId, falseBoolean) => {
     let foundConversation = await ConversationModel.find({
-        isGroupConversation: false,
+        isGroupConversation: falseBoolean,
         $and: [
             {users: {$elemMatch: {$eq: senderId}}},
             {users: {$elemMatch: {$eq: receiverId}}},
@@ -53,15 +53,34 @@ export const findConversationBetweenTwoUsers = async (senderId, receiverId) => {
     return foundConversation[0];
 };
 
-export const findGroupConversation = async (convoId) => {
+export const findGroupConversation = async (groupConvoId) => {
 
-    const existingGroupConversation = await ConversationModel.findById(convoId);
+    const existingGroupConversation = await ConversationModel.findById(groupConvoId)
+    .populate({
+        path: "latestMessage",
+        model: "MessageModel",
+        populate: {
+            path: "sender",
+            select: "firstName lastName email picture status",
+            model: "UserModel"
+        }
+    });
 
     if(!existingGroupConversation){
         throw createHttpError.BadRequest("Whoops! No group conversation found!");
     };
 
-    console.log(existingGroupConversation);
+    // const populatedGroupConversation = await UserModel.populate(existingGroupConversation, {
+    //     path: "latestMessage",
+    //     model: "MessageModel",
+    //     populate: {
+    //         path: "sender",
+    //         select: "firstName lastName email picture status",
+    //         model: "UserModel"
+    //     }
+    // });
+
+    // console.log(existingGroupConversation);
 
     return existingGroupConversation;
 };
@@ -121,7 +140,7 @@ export const getAllUserConversations = async (userId) => {
                         populate: {
                             path: "sender",
                             select: "firstName lastName email picture status",
-                            model: "UserModel"
+                            model: "UserModel" 
                         }
                     });
                 };
