@@ -1,8 +1,8 @@
 import logger from "../configs/winston-logger.js";
 import createHttpError from "http-errors";
 
-import { findUser } from "../services/user-services-functions.js";
-import { findConversationBetweenTwoUsers, createNewConversation, populateConversation, getAllUserConversations, findGroupConversation} from "../services/conversation-services-functions.js";
+import { findUser } from "../services/user-services.js";
+import { findConversationBetweenTwoUsers, createNewConversation, populateConversation, getAllUserConversations, findGroupConversation} from "../services/conversation-services.js";
 
 
 //creating or opening a conversastion

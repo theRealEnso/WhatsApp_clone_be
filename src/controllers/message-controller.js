@@ -2,7 +2,7 @@ import createHttpError from "http-errors";
 import logger from "../configs/winston-logger.js";
 
 import { createNewMessage, populateMessage, getMessages } from "../services/message-services-functions.js";
-import { updateLatestMessage } from "../services/conversation-services-functions.js";
+import { updateLatestMessage } from "../services/conversation-services.js";
 
 export const sendMessage = async (req, res, next) => {
     try {
